@@ -5,10 +5,10 @@
 <svg width=300 height=300>
 </svg>
 <script>
-var data = [4,8,15,16,23,42];
+var data = [4,20,15,24,31,42];
 
-var width=200;
-var height=200;
+var width=400;
+var height=400;
 var margin=50;
 var x = d3.scaleBand().domain([0,1,2,3,4,5]).range([0,width]);
 var y = d3.scaleLinear().domain([0,42]).range([height,0])
@@ -26,7 +26,7 @@ d3.select("svg").append("g")
   .attr("transform","translate("+margin+","+margin+")")
   .call(d3.axisLeft(y));
 d3.select("svg").append("g")
-  .attr("transform","translate("+margin+","+250+")")
+  .attr("transform","translate("+margin+","+450+")")
   .call(d3.axisBottom(x));
 
 </script>
