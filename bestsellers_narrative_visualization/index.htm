@@ -1,0 +1,266 @@
+<html>
+<head>
+    <title>Amazon Best Sellers</title>
+    <script src='https://d3js.org/d3.v5.min.js'></script>
+    <style> 
+        circle {fill: #add8e6; stroke: black;} 
+        rect {stroke: darkgreen;}
+        .bookName {font-family: Verdana, Geneva, Tahoma, sans-serif;font-size:small;}
+        .authorName {font-family: Verdana, Geneva, Tahoma, sans-serif;font-size:x-small;}
+        .consecCount {font-family: Verdana, Geneva, Tahoma, sans-serif;font-size:small;stroke: black;}
+        .rateDataBar {fill: yellow;}
+        .rateOutBar {fill: white; }
+        body {background-color: darkgray;}
+        #page {background-color: white;border: 2px solid black;width: 1280px;height: 1500px;padding: 20px;}
+        /* body {background-color: lightgray;} */
+    </style>
+</head>
+<body onload='init()'>
+    <div id="page">
+    <h1 style="text-align: center;">Amazon 50 Best Sellers in each year</h1>
+    <table>
+        <tr>
+            <td>
+                <div id="divFilter" class="divFilter">
+                    <table>
+                        <tr>
+                            <td>Year</td>
+                            <td>
+                                <button onclick="btMove_click(-11)"><<</button>
+                                <button onclick="btMove_click(-1)"><</button>
+                                <select id="sYear" onchange="sYear_Change()">
+                                    <option>2009</option>
+                                    <option>2010</option>
+                                    <option>2011</option>
+                                    <option>2012</option>
+                                    <option>2013</option>
+                                    <option selected>2014</option>
+                                    <option>2015</option>
+                                    <option>2016</option>
+                                    <option>2017</option>
+                                    <option>2018</option>
+                                    <option>2019</option>
+                                </select>
+                                <button onclick="btMove_click(1)">></button>
+                                <button onclick="btMove_click(11)">>></button>
+                            </td>
+                            <td>
+                                <table>
+                                    <tr>
+                                        <td>Genre color:</td>
+                                        <td style="background-color: lightgreen;padding: 5px;border: solid black 1px;">Fiction</td>
+                                        <td style="background-color: lightblue;padding: 5px;border: solid black 1px;">Non Fiction</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td>
+                <ul style="margin: auto;">
+                    <li>This web page only includes data of years between 2009 to 2019.</li>
+                    <li>Each book shows as own box.</li>
+                    <li>Books that more than 2 years in bestseller list appears in first. </li>
+                    <li>Books that same years appearance in bestsellers are sorted by book title.</li>
+                    <li>Book title shows in top in each book box.</li>
+                    <li>Years in bestseller since 2009 till the filter year shows as bold number in each book box.</li>
+                    <li>User rating for each book appears as a yellow bar in each book's box.</li>
+                    <li>Author name of the book  shows in bottom.</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    <svg width=800 height=600>
+    </svg>
+    <div id="tooltip" style="position: absolute;z-index:10"></div>
+    </div>
+<script>
+    var year = 2014;
+    var margin = {top: 30, right: 20, bottom: 30, left: 50},
+        width = 1360 - margin.left - margin.right,
+        height = 1600 - margin.top - margin.bottom,
+        colCount = 8, rowCount = 9,
+        rwidth = Math.round(width / colCount) - 2,
+        rheight = Math.round(height / rowCount) - 2;
+    ratebar_w = rwidth - 20;
+    ratedomain = [1,5];
+    raterange = [0,ratebar_w];
+    ratexs = d3.scaleLinear().domain(ratedomain).range(raterange);
+    console.log(ratexs);
+
+    //console.log("w:" + rwidth + "h:" + rheight);
+    var data = null;
+    var colorRange = {"Fiction":"lightgreen", "Non Fiction":"lightblue"}
+
+async function init() {
+    data = await d3.csv("bestsellers_c.csv");
+    draw();
+    // for (i = 2009; i++; i<=2019) {
+    //     year = i;
+    //     draw();
+    //     sleep(1000);
+    // }
+}
+
+function draw() {
+    //console.log(data);
+    //console.log(year);
+    let ydata = data.filter(function(e){return parseInt(e.Year) == year;});
+    //console.log(ydata);
+
+    var svg = d3.select('svg')
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
+    svg.selectAll("g").remove()
+        // .transition()
+        // .style("fill", "red")
+        ;
+
+    var books = svg.selectAll('.book')
+        .data(ydata)        
+        .enter()
+        .append("g")
+        .attr("class", "book")
+        ;
+    books.append('rect')
+        .attr("class", "book")
+        .attr('x', function(d,i) {return i % colCount * rwidth;})
+        .attr('y', function(d,i) {return (Math.floor(i / colCount)) * rheight;})
+        .attr('width', rwidth)
+        .attr('height', rheight)
+        .style('fill', function(d, i) {return colorRange[d.Genre];})
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseleave", mouseleave)
+            ;
+    books.append("text")
+        .attr("class", "bookName")
+        .text(function (d) { return d.Name;})
+        .attr('x', function(d,i) {return i % colCount * rwidth + 5;})
+        .attr('y', function(d,i) {return (Math.floor(i / colCount)) * rheight + 20;})
+        .call(wrap, rwidth - 5)
+    ;
+    books.append("text")
+        .attr("class", "authorName")
+        .text(function (d) { return d.Author;})
+        .attr('x', function(d,i) {return i % colCount * rwidth + 5;})
+        .attr('y', function(d,i) {return (Math.floor(i / colCount)+1) * rheight - 20;})
+        .call(wrap, rwidth - 5)
+    ;
+    books.append("text")
+        .attr("class", "consecCount")
+        .text(function (d) {
+            if (d.AsCnt > 1)
+                return d.AsCnt.toString() + " years in bestseller";
+        })
+        .attr('x', function(d,i) {return i % colCount * rwidth + 2;})
+        .attr('y', function(d,i) {return (Math.floor(i / colCount)+1) * rheight - 40;})
+    ;
+    books.append('rect')
+        .attr("class", "rateOutBar")
+        .attr('x',function(d,i) {return i % colCount * rwidth + 10;})
+        .attr('y',function(d,i) {return (Math.floor(i / colCount)+1) * rheight - 10;})
+        .attr('width', ratebar_w)
+        .attr('height',5)
+        ;
+    books.append('rect')
+        .attr("class", "rateDataBar")
+        .attr('x',function(d,i) {return i % colCount * rwidth + 10;})
+        .attr('y',function(d,i) {return (Math.floor(i / colCount)+1) * rheight - 10;})
+        .attr('width',function(d,i) {return ratexs(d.UserRating);})
+        .attr('height',4)
+        ;
+}
+
+var Tooltip = d3.select("#tooltip")
+    //.append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "2px")
+    .style("border-radius", "5px")
+    .style("padding", "5px");
+
+var mouseover = function(d) {
+    Tooltip
+    .style("opacity", 1)
+    d3.select(this)
+    .style("stroke", "black")
+    .style("opacity", 0.5)
+}
+var mousemove = function(d) {
+    pg = document.getElementById("page");
+    svg = d3.selectAll("svg");
+    Tooltip
+    .html("<strong>Title</strong>: " + d.Name + "<br/>" +
+        "<strong>Author</strong>: " + d.Author + "<br/>" +
+        "<strong>User Rating</strong>: " + d.UserRating + "<br/>" +
+        "<strong>Reviews</strong>: " + d.Reviews + "<br/>" +
+        "<strong>Price</strong>: $" + d.Price + "<br/>" +
+        "<strong>Genre</strong>: " + d.Genre
+    )
+    .style("left", (d3.select(this).attr("x")) + "px")
+    .style("top", (d3.mouse(this)[1]+50) + "px")
+}
+var mouseleave = function(d) {
+    Tooltip
+    .style("opacity", 0)
+    d3.select(this)
+    .style("stroke", "darkgreen")
+    .style("opacity", 1)
+}
+
+function sYear_Change() {
+    year = parseInt(document.getElementById("sYear").value);
+    draw();
+}
+
+function btMove_click(chg) {
+    year += chg;
+    if (year < 2009) {
+        year = 2009;
+    }
+    if (year > 2019) {
+        year = 2019;
+    }
+    document.getElementById("sYear").value = year.toString();
+    draw();
+}
+
+function wrap(text, width) {
+    text.each(function () {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            x = text.attr("x"),
+            y = text.attr("y"),
+            dy = 0, //parseFloat(text.attr("dy")),
+            tspan = text.text(null)
+                        .append("tspan")
+                        .attr("x", x)
+                        .attr("y", y)
+                        .attr("dy", dy + "em");
+        while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan")
+                            .attr("x", x)
+                            .attr("y", y)
+                            .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                            .text(word);
+            }
+        }
+    });
+}
+</script>
+</body>
+</html>
