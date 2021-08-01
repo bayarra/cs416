@@ -24,7 +24,7 @@
                 <div id="divFilter" class="divFilter">
                     <table>
                         <tr>
-                            <td>Year</td>
+                            <td style="width: 2em;">Year</td>
                             <td>
                                 <button onclick="btMove_click(-11)"><<</button>
                                 <button onclick="btMove_click(-1)"><</button>
@@ -34,8 +34,8 @@
                                     <option>2011</option>
                                     <option>2012</option>
                                     <option>2013</option>
-                                    <option selected>2014</option>
-                                    <option>2015</option>
+                                    <option>2014</option>
+                                    <option selected>2015</option>
                                     <option>2016</option>
                                     <option>2017</option>
                                     <option>2018</option>
@@ -43,15 +43,6 @@
                                 </select>
                                 <button onclick="btMove_click(1)">></button>
                                 <button onclick="btMove_click(11)">>></button>
-                            </td>
-                            <td>
-                                <table>
-                                    <tr>
-                                        <td>Genre color:</td>
-                                        <td style="background-color: lightgreen;padding: 5px;border: solid black 1px;">Fiction</td>
-                                        <td style="background-color: lightblue;padding: 5px;border: solid black 1px;">Non Fiction</td>
-                                    </tr>
-                                </table>
                             </td>
                         </tr>
                     </table>
@@ -69,6 +60,15 @@
                     <li>Author name of the book  shows in bottom.</li>
                 </ul>
             </td>
+            <td style="vertical-align: bottom;text-align: right;" colspan="10">
+                <table style="margin-left: 10em;">
+                    <tr>
+                        <td>Genre color:</td>
+                        <td style="background-color: lightgreen;padding: 5px;border: solid black 1px;">Fiction</td>
+                        <td style="background-color: lightblue;padding: 5px;border: solid black 1px;">Non Fiction</td>
+                    </tr>
+                </table>
+            </td>
         </tr>
     </table>
     <svg width=800 height=600>
@@ -76,7 +76,7 @@
     <div id="tooltip" style="position: absolute;z-index:10"></div>
     </div>
 <script>
-    var year = 2014;
+    var year = 2015;
     var margin = {top: 30, right: 20, bottom: 30, left: 50},
         width = 1360 - margin.left - margin.right,
         height = 1600 - margin.top - margin.bottom,
@@ -145,7 +145,7 @@ function draw() {
         .attr("class", "authorName")
         .text(function (d) { return d.Author;})
         .attr('x', function(d,i) {return i % colCount * rwidth + 5;})
-        .attr('y', function(d,i) {return (Math.floor(i / colCount)+1) * rheight - 20;})
+        .attr('y', function(d,i) {return (Math.floor(i / colCount)+1) * rheight - 25;})
         .call(wrap, rwidth - 5)
     ;
     books.append("text")
