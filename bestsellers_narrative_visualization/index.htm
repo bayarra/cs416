@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Amazon Best Sellers</title>
+    <title>Amazon Top 50 Bestselling Books 2009 - 2019</title>
     <script src='https://d3js.org/d3.v5.min.js'></script>
     <style> 
         circle {fill: #add8e6; stroke: black;} 
@@ -17,7 +17,7 @@
 </head>
 <body onload='init()'>
     <div id="page">
-    <h1 style="text-align: center;">Amazon 50 Best Sellers in each year</h1>
+    <h1 style="text-align: center;">Amazon top 50 Bestselling books in each year</h1>
     <table>
         <tr>
             <td>
@@ -29,13 +29,13 @@
                                 <button onclick="btMove_click(-11)"><<</button>
                                 <button onclick="btMove_click(-1)"><</button>
                                 <select id="sYear" onchange="sYear_Change()">
-                                    <option>2009</option>
+                                    <option selected>2009</option>
                                     <option>2010</option>
                                     <option>2011</option>
                                     <option>2012</option>
                                     <option>2013</option>
                                     <option>2014</option>
-                                    <option selected>2015</option>
+                                    <option>2015</option>
                                     <option>2016</option>
                                     <option>2017</option>
                                     <option>2018</option>
@@ -45,13 +45,23 @@
                                 <button onclick="btMove_click(11)">>></button>
                             </td>
                         </tr>
+                        <tr>
+                            <td colspan="5">
+                                Jump to next year in 
+                                <input type="text" id="tcounter" style="width: 2em;" readonly> seconds.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5">
+                                <button onclick="btStop_Click()">Stop auto jumping</button>
+                            </td>
+                        </tr>
                     </table>
                 </div>
             </td>
             <td>
                 <ul style="margin: auto;">
                     <li>This web page only includes data of years between 2009 to 2019.</li>
-                    <li>Each book shows as own box.</li>
                     <li>Books that more than 2 years in bestseller list appears in first. </li>
                     <li>Books that same years appearance in bestsellers are sorted by book title.</li>
                     <li>Book title shows in top in each book box.</li>
@@ -75,8 +85,16 @@
     </svg>
     <div id="tooltip" style="position: absolute;z-index:10"></div>
     </div>
+    <div style="margin: auto;">
+        Source of the Dataset: 
+        <a href="https://www.kaggle.com/sootersaalu/amazon-top-50-bestselling-books-2009-2019">Amazon Top 50 Bestselling Books 2009 - 2019</a>
+        <br>
+        Bayar Demberel. &copy;2021
+        <a href="mailto:bd12@illinois.edu">bd12@illinois.edu</a>
+    </div>
 <script>
-    var year = 2015;
+    var year = 2009;
+    var counter = 11;
     var margin = {top: 30, right: 20, bottom: 30, left: 50},
         width = 1360 - margin.left - margin.right,
         height = 1600 - margin.top - margin.bottom,
@@ -93,17 +111,36 @@
     var data = null;
     var colorRange = {"Fiction":"lightgreen", "Non Fiction":"lightblue"}
 
+    var jumpYear = window.setInterval(function() { 
+        year += 1;
+        if (year > 2019) {
+            year = 2009;
+        }
+        document.getElementById("sYear").value = year.toString();
+        draw();
+        counter = 11;
+        document.getElementById("tcounter").value = counter.toString();
+    }, 10000);
+
+    var counterSeconds = window.setInterval(function() { 
+        counter -= 1;
+        if (counter < 0) {
+            counter = 11;
+        }
+        document.getElementById("tcounter").value = counter.toString();
+    }, 1000);
+
+    function btStop_Click() {
+        window.clearInterval(jumpYear);
+        window.clearInterval(counterSeconds);
+    }
+
 async function init() {
     data = await d3.csv("bestsellers_c.csv");
     draw();
-    // for (i = 2009; i++; i<=2019) {
-    //     year = i;
-    //     draw();
-    //     sleep(1000);
-    // }
 }
 
-function draw() {
+async function draw() {
     //console.log(data);
     //console.log(year);
     let ydata = data.filter(function(e){return parseInt(e.Year) == year;});
